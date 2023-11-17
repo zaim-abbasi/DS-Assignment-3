@@ -4,6 +4,6 @@ int main()
     DirectoryTree t;
     t.Create();
 
-    t.DisplayLevelOrderRightChildren();
+    t.Display();
     return 0;
 }
