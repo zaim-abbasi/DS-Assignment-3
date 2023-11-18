@@ -1,19 +1,18 @@
-// node.h
 #pragma once
 #include "nodeInfo.h"
+#include <limits>
 class Node
 {
 public:
     NodeInfo *Info;
-    Node *Left;  // Left child node.
-    Node *Right; // Right child node.
+    Node *Left;
+    Node *Right;
 
     Node()
     {
         Info = new NodeInfo();
         Left = nullptr;
         Right = nullptr;
-    
     }
 
     Node(NodeInfo *info)

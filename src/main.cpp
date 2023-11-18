@@ -1,19 +1,6 @@
-#include "dirTree.h"
+#include "menu.h"
 int main()
 {
-    DirectoryTree t;
-    t.Create();
-
-    // t.Display();
-
-    // t.DeleteFolder();
-
-    // t.DeleteFolder();
-    t.Display();
-
-    t.DeleteFolder();
-
-    t.Display();
-
+    Menu();
     return 0;
 }

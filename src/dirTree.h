@@ -3,12 +3,14 @@
 #include "node.h"
 #include <string>
 #include <queue>
+#include <fstream>
+#include <string.h>
+#include <sstream>
 class DirectoryTree
 {
 public:
     Node *root;
 
-public:
     DirectoryTree()
     {
         // default tree structure
@@ -49,56 +51,6 @@ public:
         root->Right->Right->Info->type = "LogsReport_Directory";
     }
 
-    // DirectoryTree()
-    // {
-    //     // default tree structure
-    //     root = new Node();
-    //     root->Left = new Node();
-    //     root->Right = new Node();
-    //     root->Left->Left = new Node();
-    //     root->Left->Right = new Node();
-    //     root->Right->Left = new Node();
-    //     root->Right->Right = new Node();
-
-    //     root->Info->name = "root";
-    //     root->Info->path = "root";
-    //     root->Info->type = "root";
-
-    //     root->Left->Info->name = "PatientsData";
-    //     root->Left->Info->path = "root/PatientsData";
-    //     root->Left->Info->type = "mainDirectory";
-
-    //     root->Right->Info->name = "Logs";
-    //     root->Right->Info->path = "root/Logs";
-    //     root->Right->Info->type = "mainDirectory";
-
-    //     root->Left->Left->Info->name = "PatientsHome";
-    //     root->Left->Left->Info->path = "root/PatientsData/PatientsHome";
-    //     root->Left->Left->Info->type = "PatientsHome_Directory";
-
-    //     root->Left->Right->Info->name = "PatientsList.txt";
-    //     root->Left->Right->Info->path = "root/PatientsData/PatientsList.txt";
-    //     root->Left->Right->Info->type = "PatientsList_Directory";
-
-    //     // Hardcoded inputs
-    //     // Create folders
-    //     root->Left->Left->Left = new Node(new NodeInfo("Patient-A", "root/PatientsData/PatientsHome/Patient-A", "folder"));
-    //     root->Left->Left->Right = new Node(new NodeInfo("Patient-C", "root/PatientsData/PatientsHome/Patient-A/Patient-C", "folder"));
-    //     root->Left->Left->Right->Right = new Node(new NodeInfo("Patient-B", "root/PatientsData/PatientsHome/Patient-B", "folder"));
-
-    //     // Create files in Patient-A
-    //     root->Left->Left->Left->Right = new Node(new NodeInfo("report-1.pdf", "root/PatientsData/PatientsHome/Patient-A/report-1.pdf", ".pdf"));
-    //     root->Left->Left->Left->Right->Right = new Node(new NodeInfo("report-2.pdf", "root/PatientsData/PatientsHome/Patient-A/report-2.pdf", ".pdf"));
-
-    //     // Create files in Patient-C
-    //     root->Left->Left->Right->Right->Right = new Node(new NodeInfo("report-3.pdf", "root/PatientsData/PatientsHome/Patient-A/Patient-C/report-3.pdf", ".pdf"));
-
-    //     // Create files in Patient-B
-    //     root->Left->Left->Right->Right->Right->Right = new Node(new NodeInfo("report-4.pdf", "root/PatientsData/PatientsHome/Patient-B/report-4.pdf", ".pdf"));
-    //     root->Left->Left->Right->Right->Right->Right->Right = new Node(new NodeInfo("report-5.pdf", "root/PatientsData/PatientsHome/Patient-B/report-5.pdf", ".pdf"));
-    //     root->Left->Left->Right->Right->Right->Right->Right->Right = new Node(new NodeInfo("report-6.pdf", "root/PatientsData/PatientsHome/Patient-B/report-6.pdf", ".pdf"));
-    // }
-
     void Add(Node *&temp)
     {
         char flag = 'y';
@@ -125,7 +77,20 @@ public:
             // Ask the user if they want to create a new folder or add files to an existing folder
             cout << "\nDo you want to create a new folder (1) or add files to an existing folder (0): ";
             int choice;
-            cin >> choice;
+
+            while (true)
+            {
+                if (cin >> choice && (choice == 0 || choice == 1))
+                {
+                    break;
+                }
+                else
+                {
+                    cout << "Invalid input. Please enter 1 or 0: ";
+                    cin.clear();
+                    cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                }
+            }
 
             if (choice == 1)
             {
@@ -232,9 +197,11 @@ public:
             return temp;
         }
 
-        Node *foundInRight = FindFile(temp->Right, fileName);
 
-        return foundInRight;
+        Node *foundInRight = FindFile(temp->Right, fileName);
+        Node* foundInLeft = FindFile(temp->Left, fileName);
+
+        return foundInRight ? foundInRight : foundInLeft;
     }
 
     void Create()
@@ -246,7 +213,7 @@ public:
 
         while (flag == 1)
         {
-            cout << "Enter path: ";
+            cout << "\nEnter path: ";
             cin >> path;
 
             bool validPath = false;
@@ -272,20 +239,29 @@ public:
             if (!validPath)
             {
                 // Invalid path
-                cout << "Invalid path. Please try again." << endl;
+                cout << "\nInvalid path. Please try again." << endl;
                 continue;
             }
 
             counter++;
 
+            cout << "\nPath accepted. Current position: " << temp->Info->path << endl;
+
+            // Ask for more path
             cout << "Add more path? (1/0): ";
-            cin >> flag;
+            while (!(cin >> flag) || (flag != 0 && flag != 1))
+            {
+                // Reset cin's error state and clear the input buffer
+                cin.clear();
+                cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                cout << "\nInvalid input. Please enter 1/0: ";
+            }
         }
 
         // temp: last node in path
         Add(temp);
     }
-
 
     Node* findNode(Node* current, string nodeName)
     {
@@ -327,64 +303,63 @@ public:
 
         return foundInLeft ? foundInLeft : foundInRight;
     }
+
     void Merge()
     {
         string destination, source;
-        Node* destinationNode, *sourceNode;
-        
-        cout<<"Enter destination folder: ";
-        cin>>destination;
+        Node *destinationNode, *sourceNode;
+
+        cout << "\nEnter destination folder: ";
+        cin >> destination;
         destinationNode = findNode(root, destination);
         if (destinationNode == nullptr)
         {
-            cout << "Folder not found." << endl;
+            cout << "\nError: Destination folder not found." << endl;
             return;
         }
 
-        cout<<"Enter source folder: ";
-        cin>>source;
+        cout << "\nEnter source folder: ";
+        cin >> source;
         sourceNode = findNode(root, source);
         if (sourceNode == nullptr)
         {
-            cout << "Folder not found." << endl;
+            cout << "\nError: Source folder not found." << endl;
             return;
         }
 
-        // mow merging the files of source folder into destination folder
-        Node* filetraverse = sourceNode->Right;
+        // Merging the files of the source folder into the destination folder
+        Node *filetraverse = sourceNode->Right;
         while (filetraverse != nullptr)
         {
-            // traverse to the end of the right of destination folder
-            Node* temp = destinationNode;
+            // Traverse to the end of the right of the destination folder
+            Node *temp = destinationNode;
             while (temp->Right != nullptr)
             {
                 temp = temp->Right;
             }
 
-            // add the file to the end of the right of destination folder
+            // Add the file to the end of the right of the destination folder
             temp->Right = new Node(new NodeInfo(filetraverse->Info->name, filetraverse->Info->path, filetraverse->Info->type));
 
             filetraverse = filetraverse->Right;
         }
-        // now deleting the source folder from the main node
-        Node* temp = sourceNode;
+
+        // Deleting the source folder from the main node
+        Node *temp = sourceNode;
         sourceNode = sourceNode->Left;
         delete temp;
 
-        // ask user if he wants to keep the name of destination folder or change it
-        cout<<"Do you want to keep the name of destination folder or change it? (1/0): ";
+        // Ask the user if they want to keep the name of the destination folder or change it
+        cout << "\nDo you want to keep the name of the destination folder or change it? (1/0): ";
         int choice;
-        cin>>choice;
+        cin >> choice;
         if (choice == 0)
         {
-            cout<<"Enter new name of destination folder: ";
-            cin>>destination;
+            cout << "\nEnter new name of the destination folder: ";
+            cin >> destination;
             destinationNode->Info->name = destination;
-            cout<<"Folder name changed successfully."<<endl;
+            cout << "Folder name changed successfully." << endl;
         }
-
-
-
     }
 
     void DeleteFile()
@@ -401,10 +376,19 @@ public:
             return;
         }
 
-        // Delete the file
-        Node *temp = fileNode->Right;
-        fileNode->Right = temp->Right;
-        delete temp;
+        // Check if the file has a right child
+        if (fileNode->Right != nullptr)
+        {
+            // Delete the file
+            Node *temp = fileNode->Right;
+            fileNode->Right = temp->Right;
+            delete temp;
+            cout << "File deleted successfully." << endl;
+        }
+        else
+        {
+            cout << "Folder does not have any content to delete." << endl;
+        }
     }
 
     void DeleteFolder()
@@ -420,64 +404,65 @@ public:
             cout << "Folder not found." << endl;
             return;
         }
-        cout<<"Folder found: "<< folderNode->Info->name<<endl;
 
-        // Delete the folder directly if it's right and left nodes are null
+        // Delete the folder directly if it has no left or right child
         if (folderNode->Left == nullptr && folderNode->Right == nullptr)
         {
-            cout<<"Deleting folder directly."<<endl;
-            Node* temp = folderNode;
+            cout << "Deleting folder directly." << endl;
+            Node *temp = folderNode;
             folderNode = folderNode->Left;
             delete temp;
             return;
         }
 
-        if(folderNode->Left == nullptr && folderNode->Right != nullptr)
+        // Attempt to merge files if the folder has files
+        if (folderNode->Left == nullptr && folderNode->Right != nullptr)
         {
-            // folder has files so ask to merge these files with another folder
-            cout<<"Folder has files. Do you want to merge these files with another folder? (1/0): ";
+            // Folder has files, ask to merge these files with another folder
+            cout << "Folder has files. Do you want to merge these files with another folder? (1/0): ";
             int choice;
-            cin>>choice;
+            cin >> choice;
             if (choice == 1)
             {
                 string destinationFolder;
-                cout<<"Enter destination folder: ";
-                cin>>destinationFolder;
-                Node* destinationNode = findNode(root, destinationFolder);
+                cout << "Enter destination folder: ";
+                cin >> destinationFolder;
+                Node *destinationNode = findNode(root, destinationFolder);
                 if (destinationNode == nullptr)
                 {
-                    cout << "Folder not found." << endl;
+                    cout << "Destination folder not found." << endl;
                     return;
                 }
 
-                // mow merging the files of source folder into destination folder
-                Node* filetraverse = folderNode->Right;
-                while (filetraverse != nullptr)
+                // Merge the files of the source folder into the destination folder
+                Node *fileTraverse = folderNode->Right;
+                while (fileTraverse != nullptr)
                 {
-                    // traverse to the end of the right of destination folder
-                    Node* temp = destinationNode;
+                    // Traverse to the end of the right of the destination folder
+                    Node *temp = destinationNode;
                     while (temp->Right != nullptr)
                     {
                         temp = temp->Right;
                     }
 
-                    // add the file to the end of the right of destination folder
-                    temp->Right = new Node(new NodeInfo(filetraverse->Info->name, filetraverse->Info->path, filetraverse->Info->type));
+                    // Add the file to the end of the right of the destination folder
+                    temp->Right = new Node(new NodeInfo(fileTraverse->Info->name, fileTraverse->Info->path, fileTraverse->Info->type));
 
-                    filetraverse = filetraverse->Right;
+                    fileTraverse = fileTraverse->Right;
                 }
             }
-            // delete the folder directly
-            cout<<"Deleting folder directly."<<endl;
-            Node* temp = folderNode;
+
+            // Delete the folder directly
+            cout << "Deleting folder directly." << endl;
+            Node *temp = folderNode;
             folderNode = folderNode->Left;
             delete temp;
             return;
         }
 
+        // Attempt to merge files and folders if the folder has both
         if (folderNode->Left != nullptr && folderNode->Right != nullptr)
         {
-            // Folder has another folder in its left and files in its right
             cout << "Folder contains both folders and files." << endl;
 
             // Ask the user where to merge the files
@@ -493,26 +478,14 @@ public:
                 cout << "Destination folder not found. Aborting operation." << endl;
                 return;
             }
+            cout << "Destination folder found: " << destinationNode->Info->name << endl;
 
             // Find the parent folder of the current folder
-            Node *parentFolder = FindNodewithBack(root, folderNode->Info->path);
+            Node *parentFolder = FindNodewithBack(root, folderNode->Info->name);
 
             if (parentFolder != nullptr)
             {
                 // Merge files to the chosen destination
-                string destination;
-                cout << "Enter the destination folder where you want to merge the files: ";
-                cin >> destination;
-
-                // Search for the destination folder in the tree
-                Node *destinationNode = FindFolder(root, destination);
-
-                if (destinationNode == nullptr)
-                {
-                    cout << "Destination folder not found. Aborting operation." << endl;
-                    return;
-                }
-
                 Node *currentFile = folderNode->Right;
                 while (currentFile != nullptr)
                 {
@@ -561,7 +534,6 @@ public:
 
                 cout << "Folder merged and deleted successfully." << endl;
             }
-
             else
             {
                 cout << "Error: Parent folder not found." << endl;
@@ -569,9 +541,265 @@ public:
         }
     }
 
+    void Search()
+    {
+        // Take the file name from the user and print its path if found
+        // Ask the user if they want to search for a directory
+        // If yes, then print the path of the directory; otherwise, print not found
+
+        string name;
+        cout << "Enter name of File/Folder to search: ";
+        cin >> name;
+
+        Node *fileNode = findNode(root, name);
+
+        if (fileNode == nullptr)
+        {
+            cout << "File not found." << endl;
+            return;
+        }
+
+        // Print its path by going to its parent node until the root node
+        // Combine the whole path in a string with / in between
+        Node *temp = fileNode;
+        string path = fileNode->Info->name;
+
+        while (temp != nullptr)
+        {
+            temp = FindNodewithBack(root, temp->Info->name);
+
+            if (temp != nullptr)
+            {
+                path = temp->Info->name + "/" + path;
+            }
+        }
+
+        cout << "Path of file/folder: " << path << endl;
+
+        // Ask the user if they want to search for a directory
+        cout << "Do you want to search for a directory? (1/0): ";
+        int choice;
+        cin >> choice;
+
+        if (choice == 1)
+        {
+            // Check if the found node is a directory
+            if (fileNode->Left != nullptr)
+            {
+                // Print the path of the directory
+                cout << "Path of directory: " << path << endl;
+            }
+            else
+            {
+                cout << "No directory found for the given name." << endl;
+            }
+        }
+    }
+
+    void Copy_Move()
+    {
+        string name, destination;
+        cout << "Enter name of File to copy/move: ";
+        cin >> name;
+
+        Node *fileNode = findNode(root, name);
+
+        if (fileNode == nullptr)
+        {
+            cout << "File not found." << endl;
+            return;
+        }
+
+        cout << "Enter destination folder: ";
+        cin >> destination;
+
+        Node *destinationNode = findNode(root, destination);
+
+        if (destinationNode == nullptr)
+        {
+            cout << "Destination folder not found." << endl;
+            return;
+        }
+
+        cout << "Do you want to copy or move the file? (1/0): ";
+        int choice;
+        cin >> choice;
+
+        if (choice == 1)
+        {
+            // Copy the file
+            Node *temp = destinationNode;
+            while (temp->Right != nullptr)
+            {
+                temp = temp->Right;
+            }
+
+            temp->Right = new Node(new NodeInfo(fileNode->Info->name, fileNode->Info->path, fileNode->Info->type));
+        }
+        else
+        {
+            // Move the file
+            Node *temp = destinationNode;
+            while (temp->Right != nullptr)
+            {
+                temp = temp->Right;
+            }
+
+            temp->Right = new Node(new NodeInfo(fileNode->Info->name, fileNode->Info->path, fileNode->Info->type));
+
+            // remove the file from it's original location
+            Node *fileParent = FindNodewithBack(root, fileNode->Info->name);
+            if (fileParent != nullptr)
+            {
+                Node *temp = fileParent->Right;
+                fileParent->Right = fileParent->Right->Right;
+                delete temp;
+            }
+
+            cout << "File moved successfully." << endl;
+            
+            // check if the folder from which the file was moved is empty, if yes, ask user to delete it
+            if (fileParent->Right == nullptr)
+            {
+                cout << "Folder is empty. Do you want to delete it? (1/0): ";
+                int choice;
+                cin >> choice;
+
+                if (choice == 1)
+                {
+                    Node *parent = FindNodewithBack(root, fileParent->Info->name);
+
+                    if (parent != nullptr)
+                    {
+                        // Connect the parent's left or right to the folder's left (can be nullptr)
+                        if (parent->Left == fileParent)
+                        {
+                            parent->Left = fileParent->Left;
+                        }
+                        else if (parent->Right == fileParent)
+                        {
+                            parent->Right = fileParent->Left;
+                        }
+
+                        // Delete the empty folder
+                        delete fileParent;
+
+                        cout << "Folder deleted successfully." << endl;
+                    }
+                }
+            }
+        }
+    }
+
+    Node *FindParentAtDepth(Node *node, int targetDepth, int currentDepth = 0)
+    {
+        if (node == nullptr)
+            return nullptr;
+
+        if (currentDepth == targetDepth)
+        {
+            // If the target depth is reached, return the parent of this node
+            return node;
+        }
+
+        // Recursively search in left and right subtrees
+        Node *leftResult = FindParentAtDepth(node->Left, targetDepth, currentDepth + 1);
+        Node *rightResult = FindParentAtDepth(node->Right, targetDepth, currentDepth);
+
+        // Return the first non-null result
+        return leftResult ? leftResult : rightResult;
+    }
+
+    // Add these two member functions to your DirectoryTree class:
+
+    void ExportToFileHelper(Node *node, ofstream &file, int depth = 0)
+    {
+        if (node == nullptr)
+            return;
+
+        file << string(depth, '\t') << node->Info->name << "," << node->Info->path << "," << node->Info->type << endl;
+
+        // Recursively export left and right subtrees
+        ExportToFileHelper(node->Left, file, depth + 1);
+        ExportToFileHelper(node->Right, file, depth);
+    }
+
+    void ExportToFile()
+    {
+        ofstream file("tree.txt");
+
+        if (!file.is_open())
+        {
+            cout << "Unable to open file." << endl;
+            return;
+        }
+
+        ExportToFileHelper(root, file);
+
+        file.close();
+    }
+
+    void ImportFromFile()
+    {
+        ifstream file("tree.txt");
+
+        if (!file.is_open())
+        {
+            cout << "Unable to open file." << endl;
+            return;
+        }
+
+        // Clear the existing tree
+        DestroyTree(root);
+        root = nullptr;
+
+        string line;
+        while (getline(file, line))
+        {
+            string name, path, type;
+            stringstream ss(line);
+            getline(ss, name, ',');
+            getline(ss, path, ',');
+            getline(ss, type);
+
+            // Count the number of tabs to determine the depth of the node
+            int depth = 0;
+            while (ss.peek() == '\t')
+            {
+                ss.get();
+                ++depth;
+            }
+
+            Node *newNode = new Node(new NodeInfo(name, path, type));
+
+            if (depth == 0)
+            {
+                // Root node
+                root = newNode;
+            }
+            else
+            {
+                // Find the parent node at the correct depth
+                Node *parentNode = FindParentAtDepth(root, depth - 1);
+
+                // Add the new node to the left or right based on its depth
+                if (parentNode != nullptr)
+                {
+                    if (parentNode->Left == nullptr)
+                        parentNode->Left = newNode;
+                    else
+                        parentNode->Right = newNode;
+                }
+            }
+        }
+
+        file.close();
+    }
+
+
     void Display()
     {
-        Node* temp = findNode(root, "PatientsHome");
+        Node* temp = findNode(root, "root");
         if (temp == nullptr)
         {
             cout << "Folder not found." << endl;
@@ -596,4 +824,16 @@ public:
         }
     }
 
+    void DestroyTree(Node *node)
+    {
+        if (node == nullptr)
+            return;
+
+        // Recursively destroy left and right subtrees
+        DestroyTree(node->Left);
+        DestroyTree(node->Right);
+
+        // Delete the current node
+        delete node;
+    }
 };
