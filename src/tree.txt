@@ -1,0 +1,15 @@
+root,root,root
+	PatientsData,root/PatientsData,mainDirectory
+		PatientsHome,root/PatientsData/PatientsHome,PatientsHome_Directory
+			Patient-A,root/PatientsData/PatientsHome/Patient-A,folder
+				Patient-B,root/PatientsData/PatientsHome/Patient-B,folder
+					Patient-C,root/PatientsData/PatientsHome/Patient-C,folder
+					report-5.txt,root/PatientsData/PatientsHome/Patient-C/report-5.txt.pdf,.pdf
+				report-3.txt,root/PatientsData/PatientsHome/Patient-B/report-3.txt.pdf,.pdf
+				report-4.txt,root/PatientsData/PatientsHome/Patient-B/report-4.txt.pdf,.pdf
+			report-1.txt,root/PatientsData/PatientsHome/Patient-A/report-1.txt.pdf,.pdf
+			report-2.txt,root/PatientsData/PatientsHome/Patient-A/report-2.txt.pdf,.pdf
+	PatientsList.txt,root/PatientsData/PatientsList.txt,PatientsList_Directory
+Logs,root/Logs,mainDirectory
+	LogsHome,root/Logs/LogsHome,LogsHome_Directory
+LogsReport.pdf,root/Logs/LogsReport.pdf,LogsReport_Directory
